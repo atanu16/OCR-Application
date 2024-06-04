@@ -1,6 +1,7 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
-import './style.css'
+import './style.css';
+
 const TextEditor = ({ initialText }) => {
   const [text, setText] = useState(initialText);
 
@@ -9,9 +10,15 @@ const TextEditor = ({ initialText }) => {
   };
 
   return (
-    <div className='editor'>
-      <h2>Extracted Text</h2>
-      <textarea value={text} onChange={handleTextChange} rows={60} cols={150} />
+    <div className="editor">
+      <h2 className="editor-title">Extracted Text</h2>
+      <textarea 
+        value={text} 
+        onChange={handleTextChange} 
+        rows={20} 
+        cols={80} 
+        className="editor-textarea"
+      />
     </div>
   );
 };

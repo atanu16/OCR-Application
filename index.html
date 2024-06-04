@@ -5,9 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React</title>
+    <style>
+      body {
+          scroll-behavior: smooth; /* Optional: Enables smooth scrolling */
+      }
+  </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.onload = function() {
+          window.scrollTo(0, 0);
+      };
+  </script>
   </body>
 </html>

@@ -3,8 +3,8 @@ import ImageUpload from './components/ImageUpload';
 
 const App = () => {
   return (
-    <div>
-      <h1>OCR Application</h1>
+    <div className="app-container">
+      <h1 className="app-title">OCR Application</h1>
       <ImageUpload />
     </div>
   );

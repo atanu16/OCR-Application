@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Tesseract from 'tesseract.js';
 import TextEditor from './TextEditor';
+import './style.css';
 
 const ImageUpload = () => {
   const [image, setImage] = useState(null);
@@ -9,8 +10,11 @@ const ImageUpload = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setImage(URL.createObjectURL(file));
-    extractText(file);
+    if (file) {
+      setImage(URL.createObjectURL(file));
+      setExtractedText('');
+      extractText(file);
+    }
   };
 
   const extractText = (file) => {
@@ -22,15 +26,22 @@ const ImageUpload = () => {
     ).then(({ data: { text } }) => {
       setExtractedText(text);
       setIsLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setIsLoading(false);
     });
   };
 
   return (
-    <div>
-      <input type="file" onChange={handleImageChange} accept="image/*" />
-      {isLoading && <p>Loading...</p>}
-      {image && <img src={image} alt="Uploaded" />}
-      {extractedText && <TextEditor initialText={extractedText} />}
+    <div className="upload-container">
+      <input  id="cover-image" type="file" onChange={handleImageChange} accept="image/*" className="file-input"/>
+      {isLoading && <p className="loading-text">Loading...</p>}
+      <div className="image-container">
+        {image && <img src={image} alt="Uploaded" className="uploaded-image" />}
+      </div>
+      <div className="text-editor-container">
+        {extractedText && <TextEditor initialText={extractedText} />}
+      </div>
     </div>
   );
 };
