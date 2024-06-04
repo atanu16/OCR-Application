@@ -1,23 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>OCR Application</title>
     <style>
       body {
-          scroll-behavior: smooth; /* Optional: Enables smooth scrolling */
+        scroll-behavior: smooth; /* Optional: Enables smooth scrolling */
       }
-  </style>
+    </style>
+    <script></script>
   </head>
-  <body>
+  <body onload="myfung()">
+    <div id="Loading"></div>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
     <script>
-      window.onload = function() {
-          window.scrollTo(0, 0);
-      };
-  </script>
+      var preloader = document.getElementById("Loading");
+      function myfung() {
+        preloader.style.display = "none";
+      }
+    </script>
+
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
