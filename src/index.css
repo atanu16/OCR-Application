@@ -2,7 +2,7 @@ body {
   background-color: #201f24;
   justify-content: center;
   align-items: center;
-  background-image: url("https://i.ibb.co/gZ8f5Ws/anime-girl-tattoo-katana-4k-wallpaper-uhdpaper-com-738-3-a.jpg");
+  background-image: url("/src/assets/m2.jpg");
   
   object-fit: contain;
   background-attachment: fixed;
@@ -95,7 +95,7 @@ input[type="file"]::file-selector-button:active {
 
 .loading-text {
   font-size: 1.2em;
-  color: #999;
+  color: #fffafa;
 }
 
 .image-container {
