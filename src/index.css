@@ -2,7 +2,7 @@ body {
   background-color: #201f24;
   justify-content: center;
   align-items: center;
-  background-image: url("/src/assets/m1.jpg");
+  background-image: url("/src/assets/bg.jpg");
   
   object-fit: contain;
   background-attachment: fixed;
