@@ -1,5 +1,8 @@
 Dim objOutlook, objNamespace, objInbox, objItems, objMail
-Dim objAttachments, latestMail, objFSO, savePath
+Dim objAttachments, latestMail, objFSO, savePath, searchText
+
+' Define the search text
+searchText = "find the attached fda"
 
 ' Create Outlook object
 Set objOutlook = CreateObject("Outlook.Application")
@@ -10,10 +13,18 @@ Set objInbox = objNamespace.GetDefaultFolder(6) ' 6 refers to Inbox
 Set objItems = objInbox.Items
 objItems.Sort "[ReceivedTime]", True  
 
-' Pick the latest received email
-Set latestMail = objItems.GetFirst ' This will be the most recent email
+' Loop through emails to find the latest one containing the specific text
+For Each objMail In objItems
+    If objMail.Class = 43 Then ' Ensure it is a MailItem
+        ' Check if email body contains the search text (case-insensitive)
+        If InStr(1, objMail.Body, searchText, vbTextCompare) > 0 Then
+            Set latestMail = objMail
+            Exit For ' Stop at the first (latest) matching email
+        End If
+    End If
+Next
 
-' Check if the latest email has attachments
+' Check if a matching email was found and has attachments
 If Not latestMail Is Nothing And latestMail.Attachments.Count > 0 Then
     ' Create folder if it doesn't exist
     Set objFSO = CreateObject("Scripting.FileSystemObject")
@@ -25,9 +36,9 @@ If Not latestMail Is Nothing And latestMail.Attachments.Count > 0 Then
     For Each objAttachment In objAttachments
         objAttachment.SaveAsFile savePath & objAttachment.FileName
     Next
-    MsgBox "Attachments from the latest email saved to " & savePath, vbInformation, "Success"
+    MsgBox "Attachments from the latest matching email saved to " & savePath, vbInformation, "Success"
 Else
-    MsgBox "No attachments found in the latest email.", vbExclamation, "No Attachments"
+    MsgBox "No recent matching emails with attachments found.", vbExclamation, "No Attachments"
 End If
 
 ' Cleanup
