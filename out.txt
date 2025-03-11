@@ -1,0 +1,48 @@
+Dim objOutlook, objNamespace, objInbox, objMail, objAttachments
+Dim latestMail, latestReceivedTime
+Dim objFSO, savePath, searchText
+
+' Define the search text
+searchText = "find the attached fda"
+
+' Create Outlook object
+Set objOutlook = CreateObject("Outlook.Application")
+Set objNamespace = objOutlook.GetNamespace("MAPI")
+Set objInbox = objNamespace.GetDefaultFolder(6) ' 6 refers to Inbox
+
+latestReceivedTime = #1/1/1900# ' Initialize with an old date
+
+' Loop through emails
+For Each objMail In objInbox.Items
+    ' Check if the email body contains the search text (case insensitive)
+    If InStr(1, objMail.Body, searchText, vbTextCompare) > 0 Then
+        ' Check if this email is the latest and has attachments
+        If objMail.ReceivedTime > latestReceivedTime And objMail.Attachments.Count > 0 Then
+            Set latestMail = objMail
+            latestReceivedTime = objMail.ReceivedTime
+        End If
+    End If
+Next
+
+' Save the attachment(s) if found
+If Not latestMail Is Nothing Then
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    savePath = "C:\Attachments\" ' Change this to your desired folder
+    If Not objFSO.FolderExists(savePath) Then objFSO.CreateFolder savePath
+
+    Set objAttachments = latestMail.Attachments
+    For Each objAttachment In objAttachments
+        objAttachment.SaveAsFile savePath & objAttachment.FileName
+    Next
+    MsgBox "Attachments saved to " & savePath, vbInformation, "Success"
+Else
+    MsgBox "No matching emails with attachments found.", vbExclamation, "No Attachments"
+End If
+
+' Cleanup
+Set objOutlook = Nothing
+Set objNamespace = Nothing
+Set objInbox = Nothing
+Set objMail = Nothing
+Set objAttachments = Nothing
+Set objFSO = Nothing
