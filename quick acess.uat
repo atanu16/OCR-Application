@@ -1,15 +1,43 @@
-Set objShell = CreateObject("Shell.Application")
-Set objFolder = objShell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}") ' Quick Access
+Set objShell = CreateObject("WScript.Shell")
 
-For Each objItem In objFolder.Items
-    folderPath = objItem.Path
-    folderName = objItem.Name
+' Open File Explorer
+objShell.Run "explorer"
+WScript.Sleep 1000  ' Wait for Explorer to open
 
-    ' Check if the folder name starts with '{'
+' Send keys to navigate to Quick Access
+objShell.SendKeys "^e" ' Focus on search bar
+WScript.Sleep 500
+objShell.SendKeys "%v" ' Open View menu
+WScript.Sleep 500
+objShell.SendKeys "q" ' Select Quick Access
+WScript.Sleep 1000
+
+' Loop through possible items in Quick Access
+For i = 1 To 10
+    ' Select the first item in Quick Access
+    objShell.SendKeys "{DOWN}"
+    WScript.Sleep 500
+    objShell.SendKeys "^c"  ' Copy the item name
+    WScript.Sleep 500
+    
+    ' Get the copied folder name from clipboard
+    folderName = GetClipboardText()
+    
+    ' Check if it starts with '{'
     If Left(folderName, 1) = "{" Then
-        objItem.InvokeVerb "Unpin from Quick access"
+        ' Simulate Right-Click and Select "Unpin from Quick Access"
+        objShell.SendKeys("+{F10}") ' Shift + F10 opens context menu
+        WScript.Sleep 500
+        objShell.SendKeys "u" ' "Unpin from Quick Access"
+        WScript.Sleep 1000
     End If
 Next
 
-Set objFolder = Nothing
-Set objShell = Nothing
+' Close File Explorer
+objShell.SendKeys "%{F4}" ' ALT+F4 to close Explorer
+
+' Function to get clipboard text
+Function GetClipboardText()
+    Set objHTML = CreateObject("htmlfile")
+    GetClipboardText = objHTML.ParentWindow.ClipboardData.GetData("Text")
+End Function
