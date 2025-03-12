@@ -1,0 +1,15 @@
+Set objShell = CreateObject("Shell.Application")
+Set objFolder = objShell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}") ' Quick Access
+
+For Each objItem In objFolder.Items
+    folderPath = objItem.Path
+    folderName = objItem.Name
+
+    ' Check if the folder name starts with '{'
+    If Left(folderName, 1) = "{" Then
+        objItem.InvokeVerb "Unpin from Quick access"
+    End If
+Next
+
+Set objFolder = Nothing
+Set objShell = Nothing
