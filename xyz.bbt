@@ -1,61 +1,19 @@
-Dim OutlookApp, OutlookNamespace, Inbox, Mail, Attachment, SavePath
-Dim SenderEmail, TargetFileName, FolderPath
-Dim i, LatestMail
+As per your request, I am providing a detailed explanation of the complex scenarios in the ASF and ROG bots, particularly where Excel automation is required and where Macros would be beneficial.
 
-' Define search criteria
-SenderEmail = "atanumax7@gg.com"
-TargetFileName = "SMI-345" ' Keyword to match in attachment name
-FolderPath = "C:\Attachments\" ' Change this path as needed
+The project consists of four bots: XYZ, ABC, ASF, and ROG. Out of these, XYZ and ABC were already 80% completed earlier and are now fully done. I will schedule a UAT demo session with the SMEs for these two bots. However, ASF and ROG involve complex Excel operations that cannot be efficiently automated using Power Automate Desktop alone. Below are the detailed complexities for these two bots.
 
-' Initialize Outlook Application
-Set OutlookApp = CreateObject("Outlook.Application")
-Set OutlookNamespace = OutlookApp.GetNamespace("MAPI")
-Set Inbox = OutlookNamespace.GetDefaultFolder(6) ' 6 refers to Inbox
+For ASF Bot, the main challenge is handling data between the Main Excel file and the Promenta Excel file. The bot needs to match Cost Centers and GL Accounts between these two files and then copy and paste the correct amounts from the Main Excel into the Promenta Excel based on the matched GL Accounts. The amounts being copied are totals of all employee amounts present in the Main Excel, but the challenge here is that this data is scattered across the sheet. The bot has to find and consolidate the data dynamically, create a structured table, perform calculations, and then copy the final output to the correct section in the Promenta file. Making this process fully dynamic is complex, and using Macros would be more efficient.
 
-' Ensure the save folder exists
-CreateFolderIfNotExists FolderPath
+Another major complexity in ASF is that after transferring data to the Promenta Excel, the bot needs to verify that the total amount in each GL Account remains the same as the initial total before re-arranging the data. Additionally, the Cost Center section must align correctly with Employee Names and their respective GL Accounts. The difficulty arises when new data or extra line items appear, which makes dynamic reordering and validation challenging. Handling these changes dynamically using Power Automate alone is difficult, making Macros a better solution.
 
-' Sort emails by received time (latest first)
-Inbox.Items.Sort "[ReceivedTime]", True
+The third complex scenario in ASF involves cases where the ‘TEXT’ section in the Main Excel contains new line item names. In such cases, the bot needs to create a new table, merge it with the existing data, and then update the Promenta Excel accordingly. Since the number of line items is not fixed and may change with every run, this requires a flexible and dynamic approach, which Macros can handle more efficiently.
 
-' Loop through emails in Inbox
-For Each Mail In Inbox.Items
-    If Mail.Class = 43 Then ' Ensure it's a MailItem
-        ' Check if sender email matches
-        If LCase(Mail.SenderEmailAddress) = LCase(SenderEmail) Then
-            ' Check if the email has attachments
-            If Mail.Attachments.Count > 0 Then
-                ' Loop through attachments
-                For Each Attachment In Mail.Attachments
-                    ' Check if attachment name contains the keyword
-                    If InStr(1, Attachment.FileName, TargetFileName, vbTextCompare) > 0 Then
-                        ' Save the attachment
-                        SavePath = FolderPath & Attachment.FileName
-                        Attachment.SaveAsFile SavePath
-                        WScript.Echo "Attachment saved: " & SavePath
-                        Exit Sub ' Stop after saving the first matched attachment
-                    End If
-                Next
-            End If
-        End If
-    End If
-Next
+For ROG Bot, the first challenge is that it requires copying data from a new Excel file into the Main Excel file and then reformatting it to match the required structure. The copied data contains car details, and these details must be cross-verified with a Car List Excel file. The Car List file includes details such as Driver Name, License Plate, Start Date (InitDate), End Date, and Cost Center. The bot must filter out cars whose validity has expired based on the End Date and ensure that only valid cars are processed dynamically. Since the data structure keeps changing, the filtering process must be adaptable.
 
-WScript.Echo "No matching email or attachment found."
+Another complexity in ROG is handling Cost Center mapping and VAT calculation. The bot needs to copy and paste Cost Center values across multiple sheets in the Main Excel file and calculate VAT for each line item based on predefined percentage values. The issue is that different line items have different VAT percentages, and these calculations need to be done dynamically. A static approach would not work here, making Macros a better solution for handling calculations efficiently.
 
-' Function to ensure the save folder exists
-Sub CreateFolderIfNotExists(Folder)
-    Dim FSO
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    If Not FSO.FolderExists(Folder) Then
-        FSO.CreateFolder Folder
-    End If
-    Set FSO = Nothing
-End Sub
+The last major complexity in ROG is related to identifying internal cost center cars and data rearrangement. The bot has to check which cars belong to an internal cost center based on predefined rules, extract relevant data, and then rearrange multiple tables accordingly. This process involves multiple small validations, such as matching driver details with cost center information, categorizing cars based on leasing or fuel usage, and restructuring tables dynamically. The challenge is that incorrect filtering can lead to mismatches in the final report, making the process error-prone if not handled properly.
 
-' Cleanup
-Set OutlookApp = Nothing
-Set OutlookNamespace = Nothing
-Set Inbox = Nothing
-Set Mail = Nothing
-Set Attachment = Nothing
+These are the major complexities where automating only through Power Automate Desktop becomes challenging. Since these bots mainly deal with Excel operations, using Macros can significantly improve efficiency. Macros provide better handling of large datasets, flexible automation for dynamic data structures, faster execution of complex calculations, and easier reordering of tables. Implementing Macros for ASF and ROG would make the process much more manageable and reduce errors.
+
+Let me know if you need any further details or if you would like to schedule a discussion on this.
