@@ -1,43 +1,49 @@
-Dim OutlookApp, OutlookNamespace, Inbox, MailItem, Attachment, FolderPath
-Dim Mail, Attach, SavePath, SenderEmail, TargetFileName
+Dim OutlookApp, OutlookNamespace, Inbox, Mail, Attachment, SavePath
+Dim SenderEmail, TargetFileName, FolderPath
+Dim i, LatestMail
 
-' Set target email and keyword for attachment search
+' Define search criteria
 SenderEmail = "atanumax7@gg.com"
-TargetFileName = "SMI-345" ' Partial match keyword
+TargetFileName = "SMI-345" ' Keyword to match in attachment name
+FolderPath = "C:\Attachments\" ' Change this path as needed
 
 ' Initialize Outlook Application
 Set OutlookApp = CreateObject("Outlook.Application")
 Set OutlookNamespace = OutlookApp.GetNamespace("MAPI")
 Set Inbox = OutlookNamespace.GetDefaultFolder(6) ' 6 refers to Inbox
 
-' Define the folder where attachments will be saved
-FolderPath = "C:\Attachments\" ' Change this path as needed
-
-' Ensure folder exists
+' Ensure the save folder exists
 CreateFolderIfNotExists FolderPath
+
+' Sort emails by received time (latest first)
+Inbox.Items.Sort "[ReceivedTime]", True
 
 ' Loop through emails in Inbox
 For Each Mail In Inbox.Items
-    ' Check if the email is from the specified sender
-    If LCase(Mail.SenderEmailAddress) = LCase(SenderEmail) Then
-        ' Check if the email has attachments
-        If Mail.Attachments.Count > 0 Then
-            For Each Attach In Mail.Attachments
-                ' Check if attachment name contains the specified keyword
-                If InStr(1, Attach.FileName, TargetFileName, vbTextCompare) > 0 Then
-                    ' Save the attachment
-                    SavePath = FolderPath & Attach.FileName
-                    Attach.SaveAsFile SavePath
-                    WScript.Echo "Attachment saved: " & SavePath
-                End If
-            Next
+    If Mail.Class = 43 Then ' Ensure it's a MailItem
+        ' Check if sender email matches
+        If LCase(Mail.SenderEmailAddress) = LCase(SenderEmail) Then
+            ' Check if the email has attachments
+            If Mail.Attachments.Count > 0 Then
+                ' Loop through attachments
+                For Each Attachment In Mail.Attachments
+                    ' Check if attachment name contains the keyword
+                    If InStr(1, Attachment.FileName, TargetFileName, vbTextCompare) > 0 Then
+                        ' Save the attachment
+                        SavePath = FolderPath & Attachment.FileName
+                        Attachment.SaveAsFile SavePath
+                        WScript.Echo "Attachment saved: " & SavePath
+                        Exit Sub ' Stop after saving the first matched attachment
+                    End If
+                Next
+            End If
         End If
     End If
 Next
 
-WScript.Echo "Script completed."
+WScript.Echo "No matching email or attachment found."
 
-' Function to ensure folder exists
+' Function to ensure the save folder exists
 Sub CreateFolderIfNotExists(Folder)
     Dim FSO
     Set FSO = CreateObject("Scripting.FileSystemObject")
@@ -52,4 +58,4 @@ Set OutlookApp = Nothing
 Set OutlookNamespace = Nothing
 Set Inbox = Nothing
 Set Mail = Nothing
-Set Attach = Nothing
+Set Attachment = Nothing
