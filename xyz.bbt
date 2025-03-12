@@ -1,0 +1,43 @@
+Dim Outlook, Namespace, Folder, Mail, Attachment, FileName, TargetFolder, SearchTerm
+Set Outlook = CreateObject("Outlook.Application")
+Set Namespace = Outlook.GetNamespace("MAPI")
+Set Folder = Namespace.GetDefaultFolder(6) ' 6 refers to the Inbox
+
+' Define the keyword dynamically
+SearchTerm = InputBox("Enter the keyword to search in attachment name (e.g., SMI345):", "Keyword Input")
+
+TargetFolder = "C:\ExtractedAttachments\" ' Change this path as needed
+
+' Create target folder if it doesn't exist
+Set fso = CreateObject("Scripting.FileSystemObject")
+If Not fso.FolderExists(TargetFolder) Then
+    fso.CreateFolder TargetFolder
+End If
+
+' Loop through emails in Inbox
+For Each Mail In Folder.Items
+    If Mail.SenderEmailAddress = "atanumax7@gg.com" Then
+        ' Loop through attachments
+        For Each Attachment In Mail.Attachments
+            ' Replace "-" with "" to match both SMI345 and SMI-345
+            CleanedFileName = Replace(Attachment.FileName, "-", "")
+            CleanedSearchTerm = Replace(SearchTerm, "-", "")
+
+            ' Check if cleaned filename contains the cleaned search term
+            If InStr(1, CleanedFileName, CleanedSearchTerm, vbTextCompare) > 0 Then
+                FileName = TargetFolder & "\" & Attachment.FileName
+                Attachment.SaveAsFile FileName
+                WScript.Echo "Saved: " & FileName
+                Exit For ' Stop after finding the first match
+            End If
+        Next
+    End If
+Next
+
+' Cleanup
+Set Attachment = Nothing
+Set Mail = Nothing
+Set Folder = Nothing
+Set Namespace = Nothing
+Set Outlook = Nothing
+WScript.Echo "Process Completed."
