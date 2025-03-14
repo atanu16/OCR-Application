@@ -1,8 +1,8 @@
 Dim OutlookApp, Namespace, Inbox, Mail, Attach, FolderPath, SearchTerm
 Dim i, j, RegExp, InputTerm, BodyText
 
-' Prompt user for input term
-InputTerm = InputBox("Enter the search term (e.g., SMI1234):", "Enter Search Term")
+' Prompt user for input term (e.g., "MSI1234")
+InputTerm = InputBox("Enter the search term for attachment (e.g., MSI1234):", "Enter Search Term")
 
 ' Validate input
 If Trim(InputTerm) = "" Then
@@ -10,7 +10,7 @@ If Trim(InputTerm) = "" Then
     WScript.Quit
 End If
 
-' Set the folder path where attachments will be saved
+' Set folder path for saving attachments
 FolderPath = "C:\Temp\" ' Change this path if needed
 
 ' Create Outlook application object
@@ -18,9 +18,9 @@ Set OutlookApp = CreateObject("Outlook.Application")
 Set Namespace = OutlookApp.GetNamespace("MAPI")
 Set Inbox = Namespace.GetDefaultFolder(6) ' 6 refers to Inbox
 
-' Create a Regular Expression object to match the input term with different delimiters
+' Create a Regular Expression object to match the attachment filename
 Set RegExp = New RegExp
-RegExp.Pattern = InputTerm & "[\-_]?" ' Matches "InputTerm", "InputTerm-XXXX", "InputTerm_XXXX"
+RegExp.Pattern = ".*" & InputTerm & ".*" ' Matches filenames that contain InputTerm anywhere
 RegExp.IgnoreCase = True
 RegExp.Global = True
 
@@ -28,8 +28,8 @@ RegExp.Global = True
 For i = Inbox.Items.Count To 1 Step -1
     Set Mail = Inbox.Items(i)
 
-    ' Get email body text
-    BodyText = LCase(Mail.Body) ' Convert to lowercase for case-insensitive comparison
+    ' Convert email body to lowercase for case-insensitive search
+    BodyText = LCase(Mail.Body)
 
     ' Check if the email body contains "Atanu Bera"
     If InStr(BodyText, "atanu bera") > 0 Then
@@ -39,7 +39,7 @@ For i = Inbox.Items.Count To 1 Step -1
             For j = 1 To Mail.Attachments.Count
                 Set Attach = Mail.Attachments(j)
 
-                ' Check if the attachment name matches the pattern
+                ' Check if the attachment name contains the search term (allowing any separator like -, _, etc.)
                 If RegExp.Test(Attach.FileName) Then
                     ' Save the attachment
                     Attach.SaveAsFile FolderPath & Attach.FileName
