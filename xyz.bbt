@@ -1,61 +1,78 @@
-Dim OutlookApp, Namespace, Inbox, Mail, Attach, FolderPath, SearchTerm
-Dim i, j, RegExp, InputTerm, BodyText
+Dim objExcel, objWorkbook1, objWorkbook2, ws1, ws2
+Dim lastRow, endDateCol, destRow, i
+Dim sourceFile, destFile
+Dim filterYear, filterMonth
 
-' Prompt user for input term (e.g., "MSI1234")
-InputTerm = InputBox("Enter the search term for attachment (e.g., MSI1234):", "Enter Search Term")
+' Define file paths (Update these paths if needed)
+sourceFile = "C:\Path\To\FirstExcel.xlsx"
+destFile = "C:\Path\To\SecondExcel.xlsx"
 
-' Validate input
-If Trim(InputTerm) = "" Then
-    WScript.Echo "No search term entered. Exiting script."
+' Get current year and month dynamically
+filterYear = Year(Date)
+filterMonth = Right("0" & Month(Date), 2) ' Ensure month is in "MM" format (e.g., "01", "02")
+
+' Create Excel Application
+Set objExcel = CreateObject("Excel.Application")
+objExcel.Visible = True  ' Set to False to run in background
+
+' Open source and destination workbooks
+Set objWorkbook1 = objExcel.Workbooks.Open(sourceFile)
+Set objWorkbook2 = objExcel.Workbooks.Open(destFile)
+
+' Set worksheets (Modify if needed)
+Set ws1 = objWorkbook1.Sheets(1) ' First sheet of first Excel
+Set ws2 = objWorkbook2.Sheets("CostCenter") ' "CostCenter" sheet in second Excel
+
+' Find last used row in source sheet
+lastRow = ws1.Cells(ws1.Rows.Count, 1).End(-4162).Row  ' xlUp = -4162
+
+' Find "EndDate" column
+endDateCol = 0
+For i = 1 To ws1.UsedRange.Columns.Count
+    If LCase(ws1.Cells(1, i).Value) = "enddate" Then
+        endDateCol = i
+        Exit For
+    End If
+Next
+
+If endDateCol = 0 Then
+    MsgBox "EndDate column not found!", 48, "Error"
+    objWorkbook1.Close False
+    objWorkbook2.Close False
+    objExcel.Quit
     WScript.Quit
 End If
 
-' Set folder path for saving attachments
-FolderPath = "C:\Temp\" ' Change this path if needed
+' Find first empty row in "CostCenter" sheet
+destRow = ws2.Cells(ws2.Rows.Count, 1).End(-4162).Row + 1
 
-' Create Outlook application object
-Set OutlookApp = CreateObject("Outlook.Application")
-Set Namespace = OutlookApp.GetNamespace("MAPI")
-Set Inbox = Namespace.GetDefaultFolder(6) ' 6 refers to Inbox
-
-' Create a Regular Expression object to match the attachment filename
-Set RegExp = New RegExp
-RegExp.Pattern = ".*" & InputTerm & ".*" ' Matches filenames that contain InputTerm anywhere
-RegExp.IgnoreCase = True
-RegExp.Global = True
-
-' Loop through each email in the inbox
-For i = Inbox.Items.Count To 1 Step -1
-    Set Mail = Inbox.Items(i)
-
-    ' Convert email body to lowercase for case-insensitive search
-    BodyText = LCase(Mail.Body)
-
-    ' Check if the email body contains "Atanu Bera"
-    If InStr(BodyText, "atanu bera") > 0 Then
-        ' Check if the email has attachments
-        If Mail.Attachments.Count > 0 Then
-            ' Loop through each attachment
-            For j = 1 To Mail.Attachments.Count
-                Set Attach = Mail.Attachments(j)
-
-                ' Check if the attachment name contains the search term (allowing any separator like -, _, etc.)
-                If RegExp.Test(Attach.FileName) Then
-                    ' Save the attachment
-                    Attach.SaveAsFile FolderPath & Attach.FileName
-                    WScript.Echo "Attachment saved: " & FolderPath & Attach.FileName
-                End If
-            Next
+' Loop through rows and copy matching data
+For i = 2 To lastRow
+    If IsDate(ws1.Cells(i, endDateCol).Value) Then
+        If Year(ws1.Cells(i, endDateCol).Value) = filterYear And _
+           Format(Month(ws1.Cells(i, endDateCol).Value), "00") = filterMonth Then
+            
+            ' Copy row data
+            ws1.Rows(i).Copy
+            ws2.Cells(destRow, 1).PasteSpecial -4163 ' xlPasteValues = -4163
+            
+            ' Increment destination row
+            destRow = destRow + 1
         End If
     End If
 Next
 
-' Cleanup
-Set Attach = Nothing
-Set Mail = Nothing
-Set Inbox = Nothing
-Set Namespace = Nothing
-Set OutlookApp = Nothing
-Set RegExp = Nothing
+' Save and close workbooks
+objWorkbook2.Save
+objWorkbook1.Close False
+objWorkbook2.Close True
+objExcel.Quit
 
-WScript.Echo "Script execution completed."
+' Cleanup
+Set ws1 = Nothing
+Set ws2 = Nothing
+Set objWorkbook1 = Nothing
+Set objWorkbook2 = Nothing
+Set objExcel = Nothing
+
+MsgBox "Data copied successfully for " & filterYear & "-" & filterMonth & "!", 64, "Success"
