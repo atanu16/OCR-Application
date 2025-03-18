@@ -1,19 +1,54 @@
-Dim objShell, flowID, PADPath, cmd
+Dim objShell, objUIAutomation, objDesktop, objRunButton
 
-' Set the Flow ID (Replace with your actual Flow ID)
-flowID = "{c2a262-3380-440e-a459-e251da3xxxxx}"  
-
-' Define the correct path to Power Automate Desktop Console Host
-PADPath = """C:\Program Files (x86)\Power Automate Desktop\PAD.Console.Host.exe"""
-
-' Create shell object
+' Create shell object to launch PAD
 Set objShell = CreateObject("WScript.Shell")
+objShell.Run """C:\Program Files (x86)\Power Automate Desktop\Power Automate Desktop.lnk""" ' Open PAD
+WScript.Sleep 5000 ' Wait for PAD to open
 
-' Construct the command to run the PAD flow
-cmd = PADPath & " -RunFlow -FlowID " & """" & flowID & """"
+' Create UIAutomation object
+Set objUIAutomation = CreateObject("UIAutomationClient.CUIAutomation")
 
-' Execute the command
-objShell.Run cmd, 0, False
+' Get the desktop UI element
+Set objDesktop = objUIAutomation.GetRootElement()
 
-' Release the object
+' Find the "Run" button
+Set objRunButton = FindElementByName(objDesktop, "Run")
+
+' Click the "Run" button if found
+If Not objRunButton Is Nothing Then
+    objRunButton.SetFocus
+    objShell.SendKeys "{ENTER}"
+    WScript.Echo "Flow is running..."
+Else
+    WScript.Echo "Run button not found!"
+End If
+
+' Cleanup
 Set objShell = Nothing
+Set objUIAutomation = Nothing
+Set objDesktop = Nothing
+Set objRunButton = Nothing
+
+' Function to search for a UI element by name
+Function FindElementByName(rootElement, elementName)
+    Dim condition, walker, element
+
+    ' Create condition to search for element by name
+    Set condition = objUIAutomation.CreatePropertyCondition(30005, elementName) ' 30005 = UIA_NamePropertyId
+
+    ' Create a TreeWalker object
+    Set walker = objUIAutomation.ControlViewWalker
+
+    ' Walk through elements to find a match
+    Set element = walker.GetFirstChildElement(rootElement)
+    Do While Not element Is Nothing
+        If element.CurrentName = elementName Then
+            Set FindElementByName = element
+            Exit Function
+        End If
+        Set element = walker.GetNextSiblingElement(element)
+    Loop
+
+    ' Return Nothing if not found
+    Set FindElementByName = Nothing
+End Function
