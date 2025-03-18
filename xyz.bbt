@@ -1,78 +1,19 @@
-Dim objExcel, objWorkbook1, objWorkbook2, ws1, ws2
-Dim lastRow, endDateCol, destRow, i
-Dim sourceFile, destFile
-Dim filterYear, filterMonth
+Dim objShell, flowID, PADPath, cmd
 
-' Define file paths (Update these paths if needed)
-sourceFile = "C:\Path\To\FirstExcel.xlsx"
-destFile = "C:\Path\To\SecondExcel.xlsx"
+' Set the Flow ID (Replace with your actual Flow ID)
+flowID = "{c2a262-3380-440e-a459-e251da3xxxxx}"  
 
-' Get current year and month dynamically
-filterYear = Year(Date)
-filterMonth = Right("0" & Month(Date), 2) ' Ensure month is in "MM" format (e.g., "01", "02")
+' Define the correct path to Power Automate Desktop Console Host
+PADPath = """C:\Program Files (x86)\Power Automate Desktop\PAD.Console.Host.exe"""
 
-' Create Excel Application
-Set objExcel = CreateObject("Excel.Application")
-objExcel.Visible = True  ' Set to False to run in background
+' Create shell object
+Set objShell = CreateObject("WScript.Shell")
 
-' Open source and destination workbooks
-Set objWorkbook1 = objExcel.Workbooks.Open(sourceFile)
-Set objWorkbook2 = objExcel.Workbooks.Open(destFile)
+' Construct the command to run the PAD flow
+cmd = PADPath & " -RunFlow -FlowID " & """" & flowID & """"
 
-' Set worksheets (Modify if needed)
-Set ws1 = objWorkbook1.Sheets(1) ' First sheet of first Excel
-Set ws2 = objWorkbook2.Sheets("CostCenter") ' "CostCenter" sheet in second Excel
+' Execute the command
+objShell.Run cmd, 0, False
 
-' Find last used row in source sheet
-lastRow = ws1.Cells(ws1.Rows.Count, 1).End(-4162).Row  ' xlUp = -4162
-
-' Find "EndDate" column
-endDateCol = 0
-For i = 1 To ws1.UsedRange.Columns.Count
-    If LCase(ws1.Cells(1, i).Value) = "enddate" Then
-        endDateCol = i
-        Exit For
-    End If
-Next
-
-If endDateCol = 0 Then
-    MsgBox "EndDate column not found!", 48, "Error"
-    objWorkbook1.Close False
-    objWorkbook2.Close False
-    objExcel.Quit
-    WScript.Quit
-End If
-
-' Find first empty row in "CostCenter" sheet
-destRow = ws2.Cells(ws2.Rows.Count, 1).End(-4162).Row + 1
-
-' Loop through rows and copy matching data
-For i = 2 To lastRow
-    If IsDate(ws1.Cells(i, endDateCol).Value) Then
-        If Year(ws1.Cells(i, endDateCol).Value) = filterYear And _
-           Format(Month(ws1.Cells(i, endDateCol).Value), "00") = filterMonth Then
-            
-            ' Copy row data
-            ws1.Rows(i).Copy
-            ws2.Cells(destRow, 1).PasteSpecial -4163 ' xlPasteValues = -4163
-            
-            ' Increment destination row
-            destRow = destRow + 1
-        End If
-    End If
-Next
-
-' Save and close workbooks
-objWorkbook2.Save
-objWorkbook1.Close False
-objWorkbook2.Close True
-objExcel.Quit
-
-' Cleanup
-Set ws1 = Nothing
-Set ws2 = Nothing
-Set objWorkbook1 = Nothing
-Set objWorkbook2 = Nothing
-Set objExcel = Nothing
-
-MsgBox "Data copied successfully for " & filterYear & "-" & filterMonth & "!", 64, "Success"
+' Release the object
+Set objShell = Nothing
