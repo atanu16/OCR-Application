@@ -1,54 +1,24 @@
-Dim objShell, objUIAutomation, objDesktop, objRunButton
+Dim objShell, objShortcut, appPath, shortcutPath, iconPath
 
-' Create shell object to launch PAD
+' Define the browser path and Power Apps URL
+appPath = """C:\Program Files\Google\Chrome\Application\chrome.exe"" --app=https://make.powerapps.com"
+
+' Set the shortcut path on Desktop
+shortcutPath = CreateObject("WScript.Shell").SpecialFolders("Desktop") & "\PowerApps.lnk"
+
+' Use a system icon (Example: Internet Globe Icon)
+iconPath = "C:\Windows\System32\shell32.dll,5"
+
+' Create the shortcut
 Set objShell = CreateObject("WScript.Shell")
-objShell.Run """C:\Program Files (x86)\Power Automate Desktop\Power Automate Desktop.lnk""" ' Open PAD
-WScript.Sleep 5000 ' Wait for PAD to open
-
-' Create UIAutomation object
-Set objUIAutomation = CreateObject("UIAutomationClient.CUIAutomation")
-
-' Get the desktop UI element
-Set objDesktop = objUIAutomation.GetRootElement()
-
-' Find the "Run" button
-Set objRunButton = FindElementByName(objDesktop, "Run")
-
-' Click the "Run" button if found
-If Not objRunButton Is Nothing Then
-    objRunButton.SetFocus
-    objShell.SendKeys "{ENTER}"
-    WScript.Echo "Flow is running..."
-Else
-    WScript.Echo "Run button not found!"
-End If
+Set objShortcut = objShell.CreateShortcut(shortcutPath)
+objShortcut.TargetPath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+objShortcut.Arguments = "--app=https://make.powerapps.com"
+objShortcut.IconLocation = iconPath
+objShortcut.Save
 
 ' Cleanup
+Set objShortcut = Nothing
 Set objShell = Nothing
-Set objUIAutomation = Nothing
-Set objDesktop = Nothing
-Set objRunButton = Nothing
 
-' Function to search for a UI element by name
-Function FindElementByName(rootElement, elementName)
-    Dim condition, walker, element
-
-    ' Create condition to search for element by name
-    Set condition = objUIAutomation.CreatePropertyCondition(30005, elementName) ' 30005 = UIA_NamePropertyId
-
-    ' Create a TreeWalker object
-    Set walker = objUIAutomation.ControlViewWalker
-
-    ' Walk through elements to find a match
-    Set element = walker.GetFirstChildElement(rootElement)
-    Do While Not element Is Nothing
-        If element.CurrentName = elementName Then
-            Set FindElementByName = element
-            Exit Function
-        End If
-        Set element = walker.GetNextSiblingElement(element)
-    Loop
-
-    ' Return Nothing if not found
-    Set FindElementByName = Nothing
-End Function
+MsgBox "Shortcut created successfully!", vbInformation, "PowerApps Shortcut"
